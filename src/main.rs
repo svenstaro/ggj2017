@@ -14,31 +14,32 @@ use ncollide::shape::{Plane, Cuboid};
 use nphysics2d::world::World;
 use nphysics2d::object::RigidBody;
 
-// First we make a structure to contain the game's state
+struct Block {
+    body: RigidBody<f32>,
+}
+
 struct MainState {
     text: graphics::Text,
     physics_world: World<f32>,
+    blocks: Vec<Block>,
 }
 
 
-// Then we implement the `ggez::game::GameState` trait on it, which
-// requires callbacks for creating the game state, updating it each
-// frame, and drawing it.
-//
-// The `GameState` trait also contains callbacks for event handling
-// that you can override if you wish, but the defaults are fine.
 impl GameState for MainState {
     fn load(ctx: &mut Context) -> GameResult<MainState> {
         let font = graphics::Font::new(ctx, "DejaVuSerif.ttf", 48).unwrap();
         let text = graphics::Text::new(ctx, "Hello world!", &font).unwrap();
 
-        let s = MainState { text: text, physics_world: World::new() };
+        let mut s = MainState {
+            text: text,
+            physics_world: World::new(),
+            blocks: Vec::new(),
+        };
 
-        let mut world = World::new();
-        world.set_gravity(Vector2::new(0.0, 9.81));
+        s.physics_world.set_gravity(Vector2::new(0.0, 9.81));
 
         let rb = RigidBody::new_static(Plane::new(Vector2::new(0.0, -1.0)), 0.3, 0.6);
-        world.add_rigid_body(rb);
+        s.physics_world.add_rigid_body(rb);
 
         let width   = 100;
         let height  = 20;
@@ -57,7 +58,7 @@ impl GameState for MainState {
 
                 rb.append_translation(&Vector2::new(x, y));
 
-                world.add_rigid_body(rb);
+                s.physics_world.add_rigid_body(rb);
             }
         }
 
@@ -83,14 +84,6 @@ impl GameState for MainState {
     }
 }
 
-// Now our main function, which does three things:
-//
-// * First, create a new `ggez::conf::Conf`
-// object which contains configuration info on things such
-// as screen resolution and window title,
-// * Second, create a `ggez::game::Game` object which will
-// do the work of creating our MainState and running our game,
-// * then just call `game.run()` which runs the `Game` mainloop.
 pub fn main() {
     let c = conf::Conf::new();
     let mut game: Game<MainState> = Game::new("helloworld", c).unwrap();

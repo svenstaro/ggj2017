@@ -2,12 +2,16 @@ extern crate nalgebra as na;
 extern crate ncollide;
 extern crate nphysics2d;
 extern crate ggez;
+extern crate rand;
 use ggez::conf;
 use ggez::game::{Game, GameState};
 use ggez::{GameResult, Context};
 use ggez::graphics;
 use ggez::timer;
+
 use std::time::Duration;
+
+use rand::{thread_rng, Rand};
 
 use na::Vector2;
 use ncollide::shape::{Plane, Cuboid};
@@ -47,6 +51,7 @@ impl GameState for MainState {
         s.physics_world.set_gravity(Vector2::new(0.0, 9.81));
 
         let static_block = Block::new(RigidBody::new_static(Plane::new(Vector2::new(0.0, -1.0)), 0.3, 0.6), &mut s.physics_world);
+        static_block.body.borrow_mut().append_translation(&Vector2::new(0.0, 500.0));
         s.blocks.push(static_block);
 
         let width   = 100;
@@ -57,14 +62,16 @@ impl GameState for MainState {
 
         for i in 0usize .. height {
             for j in 0usize .. width {
-                let fj = j as f32;
-                let fi = i as f32;
+                let fj = (j as f32) + 200.0;
+                let fi = (i as f32) + 200.0;
                 let x  = fj * 2.0 * rad - centerx;
                 let y  = -fi * 2.0 * rad - 0.04 - rad;
 
                 let dynamic_block = Block::new(RigidBody::new_dynamic(Cuboid::new(Vector2::new(rad - 0.04, rad - 0.04)), 1.0, 0.3, 0.6), &mut s.physics_world);
 
                 dynamic_block.body.borrow_mut().append_translation(&Vector2::new(x, y));
+
+                s.blocks.push(dynamic_block);
             }
         }
 
@@ -78,11 +85,21 @@ impl GameState for MainState {
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
+        let mut rng = rand::thread_rng();
+
         ctx.renderer.clear();
         graphics::draw(ctx, &mut self.text, None, None)?;
-        let destrect = graphics::Rect::new(50, 50, 100, 100);
-        graphics::set_color(ctx, graphics::Color::RGB(100, 20, 20));
-        graphics::rectangle(ctx, graphics::DrawMode::Fill, destrect);
+        for block in &self.blocks {
+            graphics::set_color(ctx, graphics::Color::rand(&mut rng));
+            let body = block.body.borrow();
+            let destrect = graphics::Rect::new(
+                body.position().translation.x as i32,
+                body.position().translation.y as i32,
+                20,
+                20
+            );
+            graphics::rectangle(ctx, graphics::DrawMode::Fill, destrect);
+        }
         graphics::set_color(ctx, graphics::Color::RGB(0, 0, 0));
         ctx.renderer.present();
         timer::sleep_until_next_frame(ctx, 60);
@@ -92,7 +109,7 @@ impl GameState for MainState {
 
 pub fn main() {
     let mut c = conf::Conf::new();
-    c.window_title = "ExploPlane".to_string();
+    c.window_title = "ExPlane".to_string();
     c.window_width = 1280;
     c.window_height = 720;
 

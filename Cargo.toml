@@ -8,3 +8,4 @@ ggez = { git = "https://github.com/ggez/ggez.git" }
 nphysics2d = "*"
 nalgebra = "0.9.0"
 ncollide = "*"
+rand = "*"

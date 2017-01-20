@@ -1,0 +1,10 @@
+[package]
+name = "ggj2017"
+version = "0.1.0"
+authors = ["Sven-Hendrik Haase <svenstaro@gmail.com>"]
+
+[dependencies]
+ggez = { git = "https://github.com/ggez/ggez.git" }
+nphysics2d = "*"
+nalgebra = "*"
+ncollide = "*"

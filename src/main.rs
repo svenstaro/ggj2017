@@ -12,10 +12,18 @@ use std::time::Duration;
 use na::Vector2;
 use ncollide::shape::{Plane, Cuboid};
 use nphysics2d::world::World;
-use nphysics2d::object::RigidBody;
+use nphysics2d::object::{RigidBody, RigidBodyHandle};
 
 struct Block {
-    body: RigidBody<f32>,
+    body: RigidBodyHandle<f32>,
+}
+
+impl Block {
+    fn new(body: RigidBody<f32>, physics_world: &mut World<f32>) -> Block {
+        let rb_handle = physics_world.add_rigid_body(body);
+        let b = Block { body: rb_handle };
+        b
+    }
 }
 
 struct MainState {
@@ -38,8 +46,8 @@ impl GameState for MainState {
 
         s.physics_world.set_gravity(Vector2::new(0.0, 9.81));
 
-        let rb = RigidBody::new_static(Plane::new(Vector2::new(0.0, -1.0)), 0.3, 0.6);
-        s.physics_world.add_rigid_body(rb);
+        let static_block = Block::new(RigidBody::new_static(Plane::new(Vector2::new(0.0, -1.0)), 0.3, 0.6), &mut s.physics_world);
+        s.blocks.push(static_block);
 
         let width   = 100;
         let height  = 20;
@@ -54,11 +62,9 @@ impl GameState for MainState {
                 let x  = fj * 2.0 * rad - centerx;
                 let y  = -fi * 2.0 * rad - 0.04 - rad;
 
-                let mut rb = RigidBody::new_dynamic(Cuboid::new(Vector2::new(rad - 0.04, rad - 0.04)), 1.0, 0.3, 0.6);
+                let dynamic_block = Block::new(RigidBody::new_dynamic(Cuboid::new(Vector2::new(rad - 0.04, rad - 0.04)), 1.0, 0.3, 0.6), &mut s.physics_world);
 
-                rb.append_translation(&Vector2::new(x, y));
-
-                s.physics_world.add_rigid_body(rb);
+                dynamic_block.body.borrow_mut().append_translation(&Vector2::new(x, y));
             }
         }
 
@@ -85,7 +91,11 @@ impl GameState for MainState {
 }
 
 pub fn main() {
-    let c = conf::Conf::new();
+    let mut c = conf::Conf::new();
+    c.window_title = "ExploPlane".to_string();
+    c.window_width = 1280;
+    c.window_height = 720;
+
     let mut game: Game<MainState> = Game::new("helloworld", c).unwrap();
     if let Err(e) = game.run() {
         println!("Error encountered: {}", e);

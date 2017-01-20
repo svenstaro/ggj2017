@@ -41,7 +41,7 @@ impl GameState for MainState {
         let text = graphics::Text::new(ctx, "Hello world!", &font).unwrap();
 
         let mut world = World::new();
-        let explane = Block::new(RigidBody::new_dynamic(Cuboid::new(Vector2::new(10.0, 100.0)), 1.0, 0.3, 0.6), &mut world);
+        let explane = Block::new(RigidBody::new_dynamic(Cuboid::new(Vector2::new(100.0, 100.0)), 1.0, 0.3, 0.6), &mut world);
 
         let mut s = MainState {
             text: text,
@@ -52,11 +52,11 @@ impl GameState for MainState {
 
         s.physics_world.set_gravity(Vector2::new(0.0, 9.81));
 
-        let static_block = Block::new(RigidBody::new_static(Plane::new(Vector2::new(0.0, -1.0)), 0.3, 0.6), &mut s.physics_world);
-        static_block.body.borrow_mut().append_translation(&Vector2::new(0.0, 500.0));
+        let static_block = Block::new(RigidBody::new_dynamic(Cuboid::new(Vector2::new(2000.0, 10.0)), 1.0, 0.3, 0.6), &mut s.physics_world);
+        static_block.body.borrow_mut().append_translation(&Vector2::new(0.0, 400.0));
         s.blocks.push(static_block);
 
-        s.player.body.borrow_mut().append_translation(&Vector2::new(100.0, 100.0));
+        s.player.body.borrow_mut().append_translation(&Vector2::new(400.0, 100.0));
 
         Ok(s)
     }
@@ -77,7 +77,7 @@ impl GameState for MainState {
             draw_rectangle(ctx, block);
         }
 
-        graphics::set_color(ctx, graphics::Color::RGB(0, 1, 0));
+        graphics::set_color(ctx, graphics::Color::RGB(0, 255, 0));
         draw_rectangle(ctx, &self.player);
 
         graphics::set_color(ctx, graphics::Color::RGB(0, 0, 0));

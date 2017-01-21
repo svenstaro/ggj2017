@@ -16,11 +16,13 @@ use ggez::timer;
 use std::time::Duration;
 
 use rand::Rand;
+use std::collections::HashMap;
 
 use na::Vector2;
 use ncollide::shape::{Plane, Cuboid};
 use nphysics2d::world::World;
 use nphysics2d::object::RigidBody;
+use ggez::event::*;
 
 use block::Block;
 use utils::draw_rectangle;
@@ -32,6 +34,7 @@ struct MainState {
     physics_world: World<f32>,
     blocks: Vec<Block>,
     player: Block,
+    key_pressed: HashMap<Keycode, bool>,
 }
 
 
@@ -48,6 +51,7 @@ impl GameState for MainState {
             physics_world: world,
             blocks: Vec::new(),
             player: explane,
+            key_pressed: HashMap::new(),
         };
 
         s.physics_world.set_gravity(Vector2::new(0.0, 9.81));
@@ -63,6 +67,24 @@ impl GameState for MainState {
 
     fn update(&mut self, _ctx: &mut Context, dt: Duration) -> GameResult<()> {
         self.physics_world.step(timer::duration_to_f64(dt) as f32);
+
+        for (key, _) in self.key_pressed.iter() {
+            match key {
+                &Keycode::Right => {
+                    println!("right");
+                    self.player.body.borrow_mut().apply_central_impulse(Vector2::new(2000.0, 0.0));
+                }
+                &Keycode::Left => {
+                    println!("left");
+                    self.player.body.borrow_mut().apply_central_impulse(Vector2::new(-2000.0, 0.0));
+                }
+                &Keycode::Up => {
+                    println!("up");
+                    self.player.body.borrow_mut().apply_central_impulse(Vector2::new(0.0, -2000.0));
+                }
+                _ => (),
+            }
+        }
 
         Ok(())
     }
@@ -84,6 +106,23 @@ impl GameState for MainState {
         ctx.renderer.present();
         timer::sleep_until_next_frame(ctx, 60);
         Ok(())
+    }
+
+    fn key_down_event(&mut self,
+                      _keycode: Keycode,
+                      _keymod: Mod,
+                      _repeat: bool) {
+        if !_repeat {
+            self.key_pressed.insert(_keycode, true);
+        }
+    }
+    fn key_up_event(&mut self,
+                    _keycode: Keycode,
+                    _keymod: Mod,
+                    _repeat: bool) {
+        if !_repeat {
+            self.key_pressed.remove(&_keycode);
+        }
     }
 }
 
